@@ -8,6 +8,9 @@ $controllerTeste = new ControllerTeste();
 $router->get('/Router/teste/{id}', function($id){
     // $controllerTeste->
 });
+$router->post('/Router/teste/update/{id}', function($id){
+    // $controllerTeste->
+});
 $router->get('/Router/teste/list', function(){
     // $controllerTeste->list();
 });
@@ -17,4 +20,4 @@ $router->post('/Router/teste/add', function(){
 
 
 echo "<pre>";
-var_dump($router->validateUrl());
+var_dump($router->getRegisteredUrls());

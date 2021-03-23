@@ -44,7 +44,7 @@ class Router
 
     public function setRegisteredUrls($url, $callback, $method) 
     {
-        $this->registeredUrls[$method][] = array("url" => $url, "callback" => $callback);
+        $this->registeredUrls[$method][$url] = $callback;
     }
 
     private function getUrlPieces($url)
