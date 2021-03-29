@@ -12,27 +12,42 @@ class Router
         $this->requestedMethod = $_SERVER['REQUEST_METHOD'];
     }
 
-    public function get($url, $callback) 
+    public function run()
+    {
+        $requestedUrl = $this->requestedUrl;
+        $routes       = $this->getRegisteredUrls($this->requestedMethod);
+        $callback     = isset($routes[$requestedUrl]) ? $routes[$requestedUrl] : false;
+        if($callback !== false) {
+            echo call_user_func($callback);
+            exit;
+        }
+        header('HTTP/1.0 404');
+        header('Content-Type: application/json');
+        echo json_encode(array('retorno'=>'erro', 'mensagem'=>"Caminho não encontrado."));
+        exit;
+    }
+
+    public function get($url, Closure $callback) 
     {
         $this->setRegisteredUrls($url, $callback, 'GET');
     }
 
-    public function post($url, $callback) 
+    public function post($url, Closure $callback) 
     {
         $this->setRegisteredUrls($url, $callback, 'POST');
     }
 
-    public function put($url, $callback) 
+    public function put($url, Closure $callback) 
     {
         $this->setRegisteredUrls($url, $callback, 'PUT');
     }
 
-    public function delete($url, $callback) 
+    public function delete($url, Closure $callback) 
     {
         $this->setRegisteredUrls($url, $callback, 'DELETE');
     }
 
-    public function patch($url, $callback) 
+    public function patch($url, Closure $callback) 
     {
         $this->setRegisteredUrls($url, $callback, 'PATCH');
     }
@@ -44,7 +59,7 @@ class Router
 
     public function setRegisteredUrls($url, $callback, $method) 
     {
-        $this->registeredUrls[$method][$url] = $callback;
+        $this->registeredUrls[$method][$this->setUrlPattern($url)] = $callback;
     }
 
     private function getUrlPieces($url)
@@ -54,7 +69,14 @@ class Router
         return strpos($url, '/') !== false ? explode('/', $url) : array($url);
     }
 
-    public function validateUrl()
+    private function setUrlPattern($url)
+    {
+        if(substr($url, 0, 1) != '/') $url  = '/'.$url;
+        if(substr($url, -1) != '/')   $url .= '/';
+        return $url;
+    }
+
+    private function validateUrl()
     {
         $requestedUrl = $this->requestedUrl;
         $requestedMethod = $this->requestedMethod;
