@@ -11,7 +11,7 @@ $router = new Router();
 // });
 $router->get('/RouterPhp/teste/list/', function(){
     $controllerTeste = new ControllerTeste();
-    echo $controllerTeste->list();
+    echo $controllerTeste->list($GLOBALS['json']);
 });
 $router->post('/RouterPhp/teste/add/', function(){
     $controllerTeste = new ControllerTeste();

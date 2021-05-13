@@ -14,7 +14,7 @@ class Router
 
     public function run()
     {
-        $requestedUrl = $this->requestedUrl;
+        $requestedUrl = $this->setUrlPattern($this->requestedUrl);
         $routes       = $this->getRegisteredUrls($this->requestedMethod);
         $callback     = isset($routes[$requestedUrl]) ? $routes[$requestedUrl] : false;
         if($callback !== false) {
@@ -52,48 +52,24 @@ class Router
         $this->setRegisteredUrls($url, $callback, 'PATCH');
     }
     
-    public function getRegisteredUrls($method = '')
+    private function getRegisteredUrls($method = '')
     {
         return empty($method) ? $this->registeredUrls : $this->registeredUrls[$method];
     }
 
-    public function setRegisteredUrls($url, $callback, $method) 
+    private function setRegisteredUrls($url, $callback, $method) 
     {
         $this->registeredUrls[$method][$this->setUrlPattern($url)] = $callback;
     }
 
-    private function getUrlPieces($url)
-    {
-        if(substr($url, 0, 1) == '/') $url = substr($url, 1);
-        if(substr($url, -1) == '/')   $url = substr($url, 0, -1);
-        return strpos($url, '/') !== false ? explode('/', $url) : array($url);
-    }
-
     private function setUrlPattern($url)
     {
+        if(strpos($url, '?')) {
+            $url = explode('?', $url);
+            $url = $url[0];
+        }
         if(substr($url, 0, 1) != '/') $url  = '/'.$url;
         if(substr($url, -1) != '/')   $url .= '/';
         return $url;
-    }
-
-    private function validateUrl()
-    {
-        $requestedUrl = $this->requestedUrl;
-        $requestedMethod = $this->requestedMethod;
-        $urls = $this->getRegisteredUrls($requestedMethod);
-
-        // quebrar as strings de url e verificar se há variável
-        // se houver, substituir o valor na requestedUrl pelo nome da variável da url registrada
-
-        $urlArrayIndex = array_search($requestedUrl, array_column($urls, 'url'));
-
-        return $urlArrayIndex !== false;
-    }
-
-    private function validateRequestMethod($method)
-    {
-        $methods = array('GET', 'POST', 'PUT', 'DELETE', 'PATCH');
-        if(!in_array(strtoupper($method), $methods)) throw new Exception("Método de requisição '".$method."' não reconhecido.", 2);
-        return true;
     }
 }
