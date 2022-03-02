@@ -6,11 +6,16 @@ use Closure;
 
 class Router
 {
+    /**
+     * @var array [method][hasPathParams][url] => Route
+     */
     private array $routes;
+    private Request $request;
 
     public function __construct()
     {
         $this->routes = [];
+        $this->request = new Request();
     }
 
     public function getRoutesByMethod(string $method): array
@@ -75,8 +80,7 @@ class Router
 
     public function any($url, $callback, $before = array(), $after = array())
     {
-        $request = new Request();
-        switch ($request->getMethod()) {
+        switch ($this->request->getMethod()) {
             case 'GET':
                 return $this->get($url, $callback, $before, $after);
             case 'POST':
@@ -101,12 +105,7 @@ class Router
     private function addRoute(string $url, Closure $callback, string $method): Route
     {
         $url = Str::setUrlPattern($url);
-
-        $pathArray = explode('/', $url);
-        $pathParams = [];
-        foreach ($pathArray as $key => $value) {
-            if (preg_match("/{(.*)}/", $value)) $pathParams[$key] = $value;
-        }
+        $pathParams = $this->request->getPathParams($url);
 
         return $this->routes[$method][$pathParams !== []][$url] = new Route($callback, $pathParams);
     }

@@ -46,4 +46,13 @@ class Request
       foreach ($header as $key => $h) $header[strtolower($key)] = $h;
       return $header;
    }
+
+   public function getPathParams(string $url)
+   {
+      $pathParams = [];
+      foreach (explode('/', $url) as $key => $value) {
+         if (preg_match("/{(.*)}/", $value)) $pathParams[$key] = $value;
+      }
+      return $pathParams;
+   }
 }
