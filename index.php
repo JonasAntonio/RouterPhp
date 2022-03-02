@@ -35,16 +35,25 @@ $router->get("/test/{a}/testing/{b}", function (Request $request, $a, $b) {
 });
 
 
-$start = microtime(true);
+$start = round(microtime(true) * 1000);
 
 $runner = new Runner($router);
 $runner->run();
 
-echo "<br><br>";
-
-$end = microtime(true);
+$end = round(microtime(true) * 1000);
 
 $time = $end - $start;
-$memory = memory_get_usage(true) / 1048576;
+
+$memory = memory_get_usage(true);
+
+echo "<br><br>";
+
+if ($memory < 1024)
+    $memory = $memory . " bytes";
+elseif ($memory < 1048576)
+    $memory = round($memory / 1024, 2) . " kilobytes";
+else
+    $memory = round($memory / 1048576, 2) . " megabytes";
+
 echo "Memory: $memory <br>";
-echo "Time: $time";
+echo "Time: $time miliseconds";

@@ -9,7 +9,7 @@ class Request
     */
    public static function getUrl(): string
    {
-      return @$_GET['url'];
+      return $_GET['url'] ?? '';
    }
 
    /**

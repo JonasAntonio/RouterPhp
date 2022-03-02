@@ -18,9 +18,9 @@ class Router
         $this->request = new Request();
     }
 
-    public function getRoutesByMethod(string $method): array
+    public function getRoutes(bool $withPathParams): array
     {
-        return $this->routes[$method];
+        return $this->routes[$this->request->getMethod()][$withPathParams] ?? [];
     }
 
     /**

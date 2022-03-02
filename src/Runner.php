@@ -2,17 +2,21 @@
 
 namespace Src;
 
+use Middleware\MiddlewareRunner;
+
 class Runner
 {
     private string $url;
-    private Request $request;
     private Router $router;
+    private Request $request;
+    private array $urlParts;
 
     public function __construct(Router $router)
     {
-        $this->request = new Request();
-        $this->router  = $router;
-        $this->url     = Str::setUrlPattern($this->request->getUrl());
+        $this->request  = new Request();
+        $this->url      = Str::setUrlPattern($this->request->getUrl());
+        $this->router   = $router;
+        $this->urlParts = explode("/", $this->url);
     }
 
     /**
@@ -22,21 +26,20 @@ class Runner
      */
     public function run(): void
     {
-        $route = $this->getRoute();
+        $middleware = new MiddlewareRunner();
 
-
-        // MiddlewareRunner::validate($route->getBefore());
-
+        $route  = $this->getRoute();
         $params = [$this->request];
+
         if ($route->pathParams !== []) {
-            $urlParts = explode("/", $this->url);
-            foreach ($route->pathParams as $paramKey => $paramName) {
-                $params[] = $urlParts[$paramKey];
+            foreach (array_keys($route->pathParams) as $key) {
+                $params[] = $this->urlParts[$key];
             }
         }
 
+        $middleware->before($route);
         echo call_user_func_array($route->getCallback(), $params);
-        // MiddlewareRunner::validate($route->getAfter());
+        $middleware->after($route);
     }
 
     /**
@@ -45,24 +48,32 @@ class Runner
      */
     private function getRoute(): Route
     {
-        $routes = $this->router->getRoutesByMethod($this->request->getMethod());
+        /**
+         * Rotas sem path parameter
+         * @var ?Route $route
+         */
+        $route = @$this->router->getRoutes(false)[$this->url];
+        if ($route !== null) return $route;
 
-        $withoutPathParam = @$routes[false][$this->url];
+        /**
+         * Nome da rota declarada
+         * @var string $routeName
+         *
+         * Objeto da rota declarada
+         * @var Route $route
+         */
+        foreach (@$this->router->getRoutes(true) as $routeName => $route) {
+            $routeParts = explode('/', $routeName);
 
-        if ($withoutPathParam !== null) return $withoutPathParam;
+            if (count($this->urlParts) === count($routeParts)) {
+                $urlParts = $this->urlParts;
 
-        $urlParts = explode("/", $this->url);
-        $withPathParam = @$routes[true];
-
-        foreach ($withPathParam as $name => $routeObj) {
-            $registeredRouteParts = explode('/', $name);
-            if (count($urlParts) === count($registeredRouteParts)) {
-                $routeParams = $routeObj->pathParams;
-                foreach ($routeParams as $paramKey => $paramName) {
-                    if ($registeredRouteParts[$paramKey] === $paramName) {
-                        return $routeObj;
-                    }
+                foreach (array_keys($route->pathParams) as $key) {
+                    unset($urlParts[$key]);
+                    unset($routeParts[$key]);
                 }
+
+                if ($urlParts === $routeParts) return $route;
             }
         }
 
