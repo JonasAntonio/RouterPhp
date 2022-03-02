@@ -75,7 +75,8 @@ class Router
 
     public function any($url, $callback, $before = array(), $after = array())
     {
-        switch (Request::getMethod()) {
+        $request = new Request();
+        switch ($request->getMethod()) {
             case 'GET':
                 return $this->get($url, $callback, $before, $after);
             case 'POST':
