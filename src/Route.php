@@ -3,6 +3,7 @@
 namespace Src;
 
 use Closure;
+use Middleware\MiddlewareInterface;
 
 class Route
 {
@@ -22,15 +23,15 @@ class Route
         return $this->callback;
     }
 
-    // public function before(MiddlewareInterface $middleware)
-    // {
-    //     $this->before[] = $middleware;
-    //     return $this;
-    // }
+    public function before(MiddlewareInterface $middleware)
+    {
+        $this->before[] = $middleware;
+        return $this;
+    }
 
-    // public function after(MiddlewareInterface $middleware)
-    // {
-    //     $this->after[] = $middleware;
-    //     return $this;
-    // }
+    public function after(MiddlewareInterface $middleware)
+    {
+        $this->after[] = $middleware;
+        return $this;
+    }
 }
